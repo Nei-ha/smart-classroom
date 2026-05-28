@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Page</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: url('bg/report bg.png') no-repeat center center/cover;
+    }
+
+    .container {
+        width: 90%;
+        margin: 40px auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        border-radius: 10px;
+        color: white;
+    }
+
+    h1, h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #111;
+        margin-top: 10px;
+    }
+
+    th, td {
+        border: 1px solid #444;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #222;
+    }
+
+    tr:nth-child(even) {
+        background-color: #1a1a1a;
+    }
+
+    /* Leaderboard Top 3 */
+    .top3 {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .card {
+        background-color: #111;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        width: 180px;
+        box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+
+    .card img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+        border: 2px solid white;
+    }
+
+    .leaderboard-table {
+        margin-top: 20px;
+    }
+</style>
+
+</head>
+
+<body>
+
+<!-- REPORT SECTION -->
+<div class="container">
+
+    <h1 id="courseTitle"></h1>
+
+    <h3 id="dateTime"></h3>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Name</th>
+                <th>Roll No</th>
+                <th>Attendance</th>
+                <th>Sleeping</th>
+                <th>Phone Detection</th>
+                <th>Talking</th>
+                <th>Attentiveness Score</th>
+            </tr>
+        </thead>
+
+        <tbody id="reportTableBody">
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<!-- LEADERBOARD SECTION -->
+<div class="container">
+
+    <h2>Leaderboard</h2>
+
+    <div class="top3" id="top3Container">
+
+    </div>
+
+    <table class="leaderboard-table">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Roll No</th>
+                <th>Attentiveness Score</th>
+            </tr>
+        </thead>
+
+        <tbody id="leaderboardBody">
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+async function loadReport() {
+
+    const course_id =
+        sessionStorage.getItem("selected_course_id");
+
+    const section =
+        sessionStorage.getItem("selected_section");
+
+    const faculty_id =
+        sessionStorage.getItem("faculty_id");
+
+    console.log(course_id);
+    console.log(section);
+    console.log(faculty_id);
+
+    const response = await fetch(
+
+        `http://127.0.0.1:5000/get_report_data?course_id=${course_id}&section=${section}&faculty_id=${faculty_id}`
+
+    );
+
+    const data = await response.json();
+
+  
+
+    document.getElementById("courseTitle").innerHTML =
+        `${course_id}`;
+
+    document.getElementById("dateTime").innerHTML =
+        new Date().toLocaleString();
+
+    const reportBody =
+        document.getElementById("reportTableBody");
+
+    const leaderboardBody =
+        document.getElementById("leaderboardBody");
+
+    const top3Container =
+        document.getElementById("top3Container");
+
+    reportBody.innerHTML = "";
+    leaderboardBody.innerHTML = "";
+    top3Container.innerHTML = "";
+
+    data.students.forEach((student, index) => {
+
+        reportBody.innerHTML += `
+
+            <tr>
+
+                <td>${index + 1}</td>
+
+                <td>${student.name}</td>
+
+                <td>${student.rollno}</td>
+
+                <td>${student.percentage}%</td>
+
+                <td>${student.sleeping}</td>
+
+                <td>${student.phone}</td>
+
+                <td>${student.talking}</td>
+
+                <td>${student.attentive}</td>
+
+            </tr>
+
+        `;
+    });
+
+    data.leaderboard.forEach((student, index) => {
+
+        if(index < 3){
+
+            top3Container.innerHTML += `
+
+                <div class="card">
+
+                   <img src="captured_faces/${student.rollno}.jpg" alt="student">
+
+                    <h3>Rank ${index + 1}</h3>
+
+                    <p>${student.name}</p>
+
+                    <p>Roll No: ${student.rollno}</p>
+
+                </div>
+
+            `;
+
+        }
+        else{
+
+            leaderboardBody.innerHTML += `
+
+                <tr>
+
+                    <td>${student.name}</td>
+
+                    <td>${student.rollno}</td>
+
+                    <td>${student.attentive}</td>
+
+                </tr>
+
+            `;
+        }
+
+    });
+
+}
+
+loadReport();
+
+</script>
+
+</body>
+</html>
